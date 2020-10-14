@@ -2,10 +2,10 @@
 #include <stdio.h>
 #include <math.h>
 
-#define HIT_NONE 0
-#define HIT_LETTER 1
-#define HIT_WALL 2
-#define HIT_SUN 3
+const int HIT_NONE = 0;
+const int HIT_LETTER = 1;
+const int HIT_WALL = 2;
+const int HIT_SUN = 3;
 
 typedef struct {
     float x, y, z;
