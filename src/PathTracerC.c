@@ -2,71 +2,48 @@
 #include <stdio.h>
 #include <math.h>
 
-int main() {
-    printf("hello world");
-/*
-  int w = 960, h = 540, samplesCount = 8;
-  Vec position(-22, 5, 25);
-  Vec goal = !(Vec(-3, 4, 0) + position * -1);
-  Vec left = !Vec(goal.z, 0, -goal.x) * (1. / w);
+#define HIT_NONE 0
+#define HIT_LETTER 1
+#define HIT_WALL 2
+#define HIT_SUN 3
 
-  // Cross-product to get the up vector
-  Vec up(goal.y * left.z - goal.z * left.y,
-      goal.z * left.x - goal.x * left.z,
-      goal.x * left.y - goal.y * left.x);
-
-  printf("P6 %d %d 255 ", w, h);
-  for (int y = h; y--;)
-    for (int x = w; x--;) {
-      Vec color;
-      for (int p = samplesCount; p--;)
-        color = color + Trace(position, !(goal + left * (x - w / 2 + randomVal()) + up * (y - h / 2 + randomVal())));
-
-      // Reinhard tone mapping
-      color = color * (1. / samplesCount) + 14. / 241;
-      Vec o = color + 1;
-      color = Vec(color.x / o.x, color.y / o.y, color.z / o.z) * 255;
-      printf("%c%c%c", (int) color.x, (int) color.y, (int) color.z);
-    }
-    */
-}
-/*
-struct Vec {
+typedef struct {
     float x, y, z;
+} Vec;
 
-    Vec(float v = 0) { x = y = z = v; }
-
-    Vec(float a, float b, float c = 0) {
-      x = a;
-      y = b;
-      z = c;
-    }
-
-    Vec operator+(Vec r) { return Vec(x + r.x, y + r.y, z + r.z); }
-
-    Vec operator*(Vec r) { return Vec(x * r.x, y * r.y, z * r.z); }
-
-    float operator%(Vec r) { return x * r.x + y * r.y + z * r.z; }
-
-    // intnv square root
-    Vec operator!() {
-      return *this * (1 / sqrtf(*this % *this)
-      );
-    }
-};
-
-Vec plus(Vec a, Vec b) {
-    return {.x = a.x + b.x, .y = a.y + b.y, .z = a.z + b.z};
+Vec vec(float x, float y, float z) {
+    Vec res = {.x = x, .y = y, .z = z};
+    return res;
 }
 
-
 Vec plus(Vec a, Vec b) {
-    return {.x = a.x + b.x, .y = a.y + b.y, .z = a.z + b.z};
+    return vec(a.x + b.x, a.y + b.y, a.z + b.z);
 }
+
+Vec minus(Vec a, Vec b) {
+    return vec(a.x + b.x, a.y + b.y, a.z + b.z);
+}
+
+float length(Vec a) {
+    return sqrtf(a.x*a.x + a.y*a.y + a.z*a.z);
+}
+
+Vec normalize(Vec a) {
+    float len = length(a);
+    return vec(a.x/len, a.y/len, a.z/len);
+}
+
+float dotProduct(Vec a, Vec b) {
+    return a.x*b.x + a.y*b.y + a.z*b.z;
+}
+
 
 float min(float l, float r) { return l < r ? l : r; }
 
 float randomVal() { return (float) rand() / RAND_MAX; }
+
+/*
+
 
 // Rectangle CSG equation. Returns minimum signed distance from
 // space carved by
@@ -81,10 +58,7 @@ float BoxTest(Vec position, Vec lowerLeft, Vec upperRight) {
           min(lowerLeft.z, upperRight.z));
 }
 
-#define HIT_NONE 0
-#define HIT_LETTER 1
-#define HIT_WALL 2
-#define HIT_SUN 3
+
 
 // Sample the world using Signed Distance Fields.
 float QueryDatabase(Vec position, int &hitType) {
@@ -207,3 +181,37 @@ Vec Trace(Vec origin, Vec direction) {
   return color;
 }
 */
+
+
+
+int main() {
+    printf("hello world");
+    printf("length is %d", length(vec(3.0, 4.0, 5.0)));
+    getchar();
+    
+/*
+  int w = 960, h = 540, samplesCount = 8;
+  Vec position(-22, 5, 25);
+  Vec goal = !(Vec(-3, 4, 0) + position * -1);
+  Vec left = !Vec(goal.z, 0, -goal.x) * (1. / w);
+
+  // Cross-product to get the up vector
+  Vec up(goal.y * left.z - goal.z * left.y,
+      goal.z * left.x - goal.x * left.z,
+      goal.x * left.y - goal.y * left.x);
+
+  printf("P6 %d %d 255 ", w, h);
+  for (int y = h; y--;)
+    for (int x = w; x--;) {
+      Vec color;
+      for (int p = samplesCount; p--;)
+        color = color + Trace(position, !(goal + left * (x - w / 2 + randomVal()) + up * (y - h / 2 + randomVal())));
+
+      // Reinhard tone mapping
+      color = color * (1. / samplesCount) + 14. / 241;
+      Vec o = color + 1;
+      color = Vec(color.x / o.x, color.y / o.y, color.z / o.z) * 255;
+      printf("%c%c%c", (int) color.x, (int) color.y, (int) color.z);
+    }
+    */
+}

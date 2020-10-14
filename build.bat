@@ -1,0 +1,1 @@
+gcc src\PathTracerC.c --std=c11 -o H:\Exes\PathTracerC\PathTracerC.exe
