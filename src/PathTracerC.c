@@ -2,6 +2,35 @@
 #include <stdio.h>
 #include <math.h>
 
+int main() {
+    printf("hello world");
+/*
+  int w = 960, h = 540, samplesCount = 8;
+  Vec position(-22, 5, 25);
+  Vec goal = !(Vec(-3, 4, 0) + position * -1);
+  Vec left = !Vec(goal.z, 0, -goal.x) * (1. / w);
+
+  // Cross-product to get the up vector
+  Vec up(goal.y * left.z - goal.z * left.y,
+      goal.z * left.x - goal.x * left.z,
+      goal.x * left.y - goal.y * left.x);
+
+  printf("P6 %d %d 255 ", w, h);
+  for (int y = h; y--;)
+    for (int x = w; x--;) {
+      Vec color;
+      for (int p = samplesCount; p--;)
+        color = color + Trace(position, !(goal + left * (x - w / 2 + randomVal()) + up * (y - h / 2 + randomVal())));
+
+      // Reinhard tone mapping
+      color = color * (1. / samplesCount) + 14. / 241;
+      Vec o = color + 1;
+      color = Vec(color.x / o.x, color.y / o.y, color.z / o.z) * 255;
+      printf("%c%c%c", (int) color.x, (int) color.y, (int) color.z);
+    }
+    */
+}
+/*
 struct Vec {
     float x, y, z;
 
@@ -25,6 +54,15 @@ struct Vec {
       );
     }
 };
+
+Vec plus(Vec a, Vec b) {
+    return {.x = a.x + b.x, .y = a.y + b.y, .z = a.z + b.z};
+}
+
+
+Vec plus(Vec a, Vec b) {
+    return {.x = a.x + b.x, .y = a.y + b.y, .z = a.z + b.z};
+}
 
 float min(float l, float r) { return l < r ? l : r; }
 
@@ -168,30 +206,4 @@ Vec Trace(Vec origin, Vec direction) {
   }
   return color;
 }
-
-int main() {
-//  int w = 960, h = 540, samplesCount = 16;
-  int w = 960, h = 540, samplesCount = 8;
-  Vec position(-22, 5, 25);
-  Vec goal = !(Vec(-3, 4, 0) + position * -1);
-  Vec left = !Vec(goal.z, 0, -goal.x) * (1. / w);
-
-  // Cross-product to get the up vector
-  Vec up(goal.y * left.z - goal.z * left.y,
-      goal.z * left.x - goal.x * left.z,
-      goal.x * left.y - goal.y * left.x);
-
-  printf("P6 %d %d 255 ", w, h);
-  for (int y = h; y--;)
-    for (int x = w; x--;) {
-      Vec color;
-      for (int p = samplesCount; p--;)
-        color = color + Trace(position, !(goal + left * (x - w / 2 + randomVal()) + up * (y - h / 2 + randomVal())));
-
-      // Reinhard tone mapping
-      color = color * (1. / samplesCount) + 14. / 241;
-      Vec o = color + 1;
-      color = Vec(color.x / o.x, color.y / o.y, color.z / o.z) * 255;
-      printf("%c%c%c", (int) color.x, (int) color.y, (int) color.z);
-    }
-}// Andrew Kensler
+*/
