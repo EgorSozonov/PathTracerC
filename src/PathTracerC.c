@@ -28,9 +28,13 @@ float length(Vec a) {
     return sqrtf(a.x*a.x + a.y*a.y + a.z*a.z);
 }
 
-Vec normalize(Vec a) {
+Vec factor(Vec a, float f) {
+    return vec(a.x*f, a.y*f, a.z*f);
+}
+
+Vec normalize(Vec a) {    
     float len = length(a);
-    return vec(a.x/len, a.y/len, a.z/len);
+    return len > 0.0 ? factor(a, 1.0/len) : a;
 }
 
 float dotProduct(Vec a, Vec b) {
@@ -128,27 +132,32 @@ float QueryDatabase(Vec position, int *hitType) {
   return distance;
 }
 
-/*
+
 
 // Perform signed sphere marching
 // Returns hitType 0, 1, 2, or 3 and update hit position/normal
-int RayMarching(Vec origin, Vec direction, Vec &hitPos, Vec &hitNorm) {
+int RayMarching(Vec origin, Vec direction, Vec *hitPos, Vec *hitNorm) {
   int hitType = HIT_NONE;
   int noHitCount = 0;
   float d; // distance from closest object in world.
+  static Vec v0 = {.x = 0.01, .y = 0.0, .z = 0.0};
+  static Vec v1 = {.x = 0.0, .y = 0.01, .z = 0.0};
+  static Vec v2 = {.x = 0.0, .y = 0.0, .z = 0.01};
 
   // Signed distance marching
-  for (float total_d=0; total_d < 100; total_d += d)
-    if ((d = QueryDatabase(hitPos = origin + direction * total_d, hitType)) < .01
-            || ++noHitCount > 99)
-      return hitNorm =
-         !Vec(QueryDatabase(hitPos + Vec(.01, 0), noHitCount) - d,
-              QueryDatabase(hitPos + Vec(0, .01), noHitCount) - d,
-              QueryDatabase(hitPos + Vec(0, 0, .01), noHitCount) - d)
-         , hitType; // Weird return statement where a variable is also updated.
+  for (float totalD = 0; totalD < 100; totalD += d)
+    *hitPos = plus(origin, factor(direction, totalD));
+    d = QueryDatabase(*hitPos, &hitType);
+    if (d < .01 || ++noHitCount > 99) {
+        *hitNorm = normalize(vec(QueryDatabase(plus(*hitPos, v0), &noHitCount) - d,
+                       QueryDatabase(plus(*hitPos, v1), &noHitCount) - d,
+                       QueryDatabase(plus(*hitPos, v2), &noHitCount) - d));
+        return hitType;
+    }
   return 0;
 }
 
+/*
 Vec Trace(Vec origin, Vec direction) {
   Vec sampledPosition, normal, color, attenuation = 1;
   Vec lightDirection(!Vec(.6, .6, 1)); // Directional light
