@@ -42,27 +42,29 @@ float min(float l, float r) { return l < r ? l : r; }
 
 float randomVal() { return (float) rand() / RAND_MAX; }
 
-/*
+
 
 
 // Rectangle CSG equation. Returns minimum signed distance from
 // space carved by
 // lowerLeft vertex and opposite rectangle vertex upperRight.
 float BoxTest(Vec position, Vec lowerLeft, Vec upperRight) {
-  lowerLeft = position + lowerLeft * -1;
-  upperRight = upperRight + position * -1;
+  Vec a = minus(position, lowerLeft);
+  Vec b = minus(upperRight, position);
   return -min(
-          min(
-                  min(lowerLeft.x, upperRight.x),
-                  min(lowerLeft.y, upperRight.y)),
-          min(lowerLeft.z, upperRight.z));
+            min(
+                min(a.x, b.x),
+                min(a.y, b.y)
+            ),
+            min(a.z, b.z));
 }
 
 
 
 // Sample the world using Signed Distance Fields.
-float QueryDatabase(Vec position, int &hitType) {
+float QueryDatabase(Vec position, int *hitType) {
   float distance = 1e9;
+  /*
   Vec f = position; // Flattened position (z=0)
   f.z = 0;
   char letters[15*4+1] =               // 15 two points lines
@@ -93,31 +95,40 @@ float QueryDatabase(Vec position, int &hitType) {
                );
   }
   distance = powf(powf(distance, 8) + powf(position.z, 8), .125) - .5;
-  hitType = HIT_LETTER;
+*/
 
-  float roomDist ;
-  roomDist = min(// min(A,B) = Union with Constructive solid geometry
-               //-min carves an empty space
+  *hitType = HIT_LETTER;
+
+  float roomDist = 0.0;
+  roomDist = min(
                 -min(// Lower room
-                     BoxTest(position, Vec(-30, -.5, -30), Vec(30, 18, 30)),
+                     BoxTest(position, vec(-30, -.5, -30), vec(30, 18, 30)),
                      // Upper room
-                     BoxTest(position, Vec(-25, 17, -25), Vec(25, 20, 25))
+                     BoxTest(position, vec(-25, 17, -25), vec(25, 20, 25))
                 ),
                 BoxTest( // Ceiling "planks" spaced 8 units apart.
-                  Vec(fmodf(fabsf(position.x), 8),
+                  vec(fmodf(fabsf(position.x), 8),
                       position.y,
                       position.z),
-                  Vec(1.5, 18.5, -25),
-                  Vec(6.5, 20, 25)
+                  vec(1.5, 18.5, -25),
+                  vec(6.5, 20, 25)
                 )
   );
-  if (roomDist < distance) distance = roomDist, hitType = HIT_WALL;
+  if (roomDist < distance) {
+      distance = roomDist;
+      *hitType = HIT_WALL;
+  }
 
-  float sun = 19.9 - position.y ; // Everything above 19.9 is light source.
-  if (sun < distance)distance = sun, hitType = HIT_SUN;
+  float sun = 19.9 - position.y; // Everything above 19.9 is light source.
+  if (sun < distance) {
+      distance = sun;
+      *hitType = HIT_SUN;
+  }
 
   return distance;
 }
+
+/*
 
 // Perform signed sphere marching
 // Returns hitType 0, 1, 2, or 3 and update hit position/normal
