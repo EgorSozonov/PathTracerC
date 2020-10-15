@@ -157,50 +157,57 @@ int RayMarching(Vec origin, Vec direction, Vec *hitPos, Vec *hitNorm) {
   return 0;
 }
 
-/*
+
 Vec Trace(Vec origin, Vec direction) {
-  Vec sampledPosition, normal, color, attenuation = 1;
-  Vec lightDirection(!Vec(.6, .6, 1)); // Directional light
+  Vec sampledPosition = vec(0, 0, 0);
+  Vec normal = vec(0, 0, 0);
+  Vec color = vec(0, 0, 0);
+  int attenuation = 1;
+  Vec lightDirection = normalize(vec(.6, .6, 1)); // Directional light
+  static Vec otherColor = {.x = 50.0, .y = 400.0, .z = 100.0};
+  static Vec sunColor = {.x = 50.0, .y = 80.0, .z = 100.0};
 
   for (int bounceCount = 3; bounceCount--;) {
-    int hitType = RayMarching(origin, direction, sampledPosition, normal);
+    int hitType = RayMarching(origin, direction, &sampledPosition, &normal);
     if (hitType == HIT_NONE) break; // No hit. This is over, return color.
     if (hitType == HIT_LETTER) { // Specular bounce on a letter. No color acc.
-      direction = direction + normal * ( normal % direction * -2);
-      origin = sampledPosition + direction * 0.1;
-      attenuation = attenuation * 0.2; // Attenuation via distance traveled.
+      direction = plus(direction, factor(normal, dotProduct(normal, direction) * -2));
+      origin = plus(sampledPosition, factor(direction, 0.1));
+      attenuation *= 0.2; // Attenuation via distance traveled.
     }
     if (hitType == HIT_WALL) { // Wall hit uses color yellow?
-      float incidence = normal % lightDirection;
+      float incidence = dotProduct(normal, lightDirection);
       float p = 6.283185 * randomVal();
       float c = randomVal();
       float s = sqrtf(1 - c);
       float g = normal.z < 0 ? -1 : 1;
       float u = -1 / (g + normal.z);
       float v = normal.x * normal.y * u;
-      direction = Vec(v,
+      Vec vec0 = factor(vec(v,
                       g + normal.y * normal.y * u,
-                      -normal.y) * (cosf(p) * s)
-                  +
-                  Vec(1 + g * normal.x * normal.x * u,
+                      -normal.y), cosf(p) * s);
+      Vec vec1 = factor(vec(1 + g * normal.x * normal.x * u,
                       g * v,
-                      -g * normal.x) * (sinf(p) * s) + normal * sqrtf(c);
-      origin = sampledPosition + direction * .1;
-      attenuation = attenuation * 0.2;
+                      -g * normal.x), sinf(p) * s);
+      direction = plus(plus(vec0, vec1), factor(normal, sqrtf(c)));
+                  
+      origin = plus(sampledPosition, factor(direction, 0.1));
+      attenuation *= 0.2;
       if (incidence > 0 &&
-          RayMarching(sampledPosition + normal * .1,
+          RayMarching(plus(sampledPosition, factor(normal, 0.1)),
                       lightDirection,
-                      sampledPosition,
-                      normal) == HIT_SUN)
-        color = color + attenuation * Vec(500, 400, 100) * incidence;
+                      &sampledPosition,
+                      &normal) == HIT_SUN)
+        color = plus(color, factor(otherColor, attenuation*incidence));
     }
     if (hitType == HIT_SUN) { //
-      color = color + attenuation * Vec(50, 80, 100); break; // Sun Color
+      color = plus(color, factor(sunColor, attenuation)); 
+      break; // Sun Color
     }
   }
   return color;
 }
-*/
+
 
 
 
