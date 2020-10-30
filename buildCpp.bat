@@ -1,0 +1,1 @@
+g++ src\PathTracerCpp.cpp -o H:\Exes\PathTracerC\PathTracerCpp.exe
