@@ -221,10 +221,17 @@ void createBMP(unsigned char data[], int w, int h, char* fName) {
     f = fopen(fName,"wb");
     fwrite(bmpfileheader, 1, 14, f);
     fwrite(bmpinfoheader, 1, 40, f);
-    for(int i = 0; i < h; i++) {
-        fwrite(img + (w*(h - i - 1)*3), 3, w, f);
-        fwrite(bmppad, 1, (4 - (w*3)%4)%4, f);
-    }
+    int lenPad = (4 - (w*3)%4)%4;
+    if (lenPad > 0) {
+        for(int i = 0; i < h; i++) {
+            fwrite(img + (w*i*3), 3, w, f);
+            fwrite(bmppad, 1, lenPad, f);
+        }
+    } else {
+        for(int i = 0; i < h; i++) {
+            fwrite(img + (w*i*3), 3, w, f);
+        }
+    }   
 
     free(img);
     fclose(f);
@@ -232,7 +239,7 @@ void createBMP(unsigned char data[], int w, int h, char* fName) {
 
 
 int main() {
-    unsigned char testData[27] = {255, 0, 0, 0, 0, 0, 255, 0, 0, 
+    unsigned char testData[27] = {255, 0, 0, 255, 255, 255, 255, 0, 0, 
                                     0, 0, 0, 255, 0, 0, 0, 0, 0, 
                                   255, 0, 0, 0, 0, 0, 255, 0, 0};
     createBMP(testData, 3, 3, "test.bmp");
