@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h> /* memset */
-#include <unistd.h> /* close */
+
 
 const int HIT_NONE = 0;
 const int HIT_LETTER = 1;
@@ -10,6 +10,7 @@ const int HIT_WALL = 2;
 const int HIT_SUN = 3;
 const float RAND_MAX_FLOAT = (float)RAND_MAX;
 
+typedef unsigned char byte;
 typedef struct {
     float x, y, z;
 } Vec;
@@ -181,13 +182,13 @@ float reinhard(float a) {
     return 255.0*(a + 14.0/241)/(a + 255.0/241);
 }
 
-void createBMP(unsigned char data[], int w, int h, char* fName) {
+void createBMP(byte data[], int w, int h, char* fName) {
     FILE *f;
-    unsigned char *img = NULL;
+    byte *img = NULL;
     int filesize = 54 + 3*w*h;  //w is your image width, h is image height, both int
 
-    img = (unsigned char *)malloc(3*w*h);
-    memset(img, 0, 3*w*h);
+    img = (byte *)malloc(3*w*h);
+    //memset(img, 0, 3*w*h);
 
     for(int i = 0; i < w; ++i) {
         for(int j = 0; j < h; ++j) {
@@ -200,23 +201,23 @@ void createBMP(unsigned char data[], int w, int h, char* fName) {
         }
     }
 
-    unsigned char bmpfileheader[14] = { 'B', 'M', 0,0,0,0, 0,0, 0,0, 54, 0, 0,  0};
-    unsigned char bmpinfoheader[40] = { 40,0,0,0, 0,0,0,0, 0,0, 0,0, 1,  0, 24, 0};
-    unsigned char bmppad[3] = {0, 0, 0};
+    byte bmpfileheader[14] = { 'B', 'M', 0,0,0,0, 0,0, 0,0, 54, 0, 0,  0};
+    byte bmpinfoheader[40] = { 40,0,0,0, 0,0,0,0, 0,0, 0,0, 1,  0, 24, 0};
+    byte bmppad[3] = {0, 0, 0};
 
-    bmpfileheader[ 2] = (unsigned char)(filesize    );
-    bmpfileheader[ 3] = (unsigned char)(filesize>> 8);
-    bmpfileheader[ 4] = (unsigned char)(filesize>>16);
-    bmpfileheader[ 5] = (unsigned char)(filesize>>24);
+    bmpfileheader[ 2] = (byte)(filesize    );
+    bmpfileheader[ 3] = (byte)(filesize>> 8);
+    bmpfileheader[ 4] = (byte)(filesize>>16);
+    bmpfileheader[ 5] = (byte)(filesize>>24);
 
-    bmpinfoheader[ 4] = (unsigned char)(w    );
-    bmpinfoheader[ 5] = (unsigned char)(w>> 8);
-    bmpinfoheader[ 6] = (unsigned char)(w>>16);
-    bmpinfoheader[ 7] = (unsigned char)(w>>24);
-    bmpinfoheader[ 8] = (unsigned char)(h    );
-    bmpinfoheader[ 9] = (unsigned char)(h>> 8);
-    bmpinfoheader[10] = (unsigned char)(h>>16);
-    bmpinfoheader[11] = (unsigned char)(h>>24);
+    bmpinfoheader[ 4] = (byte)(w    );
+    bmpinfoheader[ 5] = (byte)(w>> 8);
+    bmpinfoheader[ 6] = (byte)(w>>16);
+    bmpinfoheader[ 7] = (byte)(w>>24);
+    bmpinfoheader[ 8] = (byte)(h    );
+    bmpinfoheader[ 9] = (byte)(h>> 8);
+    bmpinfoheader[10] = (byte)(h>>16);
+    bmpinfoheader[11] = (byte)(h>>24);
 
     f = fopen(fName,"wb");
     fwrite(bmpfileheader, 1, 14, f);
@@ -239,19 +240,11 @@ void createBMP(unsigned char data[], int w, int h, char* fName) {
 
 
 int main() {
-    unsigned char testData[27] = {255, 0, 0, 255, 255, 255, 255, 0, 0, 
-                                    0, 0, 0, 255, 0, 0, 0, 0, 0, 
-                                  255, 0, 0, 0, 0, 0, 255, 0, 0};
-    createBMP(testData, 3, 3, "test.bmp");
-    return 0;
-  /*
-    printf("hello world\n");
-    Vec x = vec(3.0, 4.0, 5.0);
-    printf("x-value is %d\n", (int)x.x);
-    printf("length is %d\n", (int)length(vec(3.0, 4.0, 5.0)));
-    getchar();
-    */
-    //return 0;
+    // byte testData[27] = {255, 0, 0, 255, 255, 255, 255, 0, 0, 
+    //                                 0, 0, 0, 255, 0, 0, 0, 0, 0, 
+    //                               255, 0, 0, 0, 0, 0, 255, 0, 0};
+    // createBMP(testData, 3, 3, "test.bmp");
+    // return 0;
 
     const int w = 96, h = 54, samplesCount = 16;
     const Vec position = vec(-22, 5, 25);
@@ -260,10 +253,12 @@ int main() {
     Vec dirUp0 = vec(goal.y*dirLeft.z - goal.z*dirLeft.y, goal.z*dirLeft.x - goal.x*dirLeft.z, goal.x*dirLeft.y - goal.y*dirLeft.x);
     Vec dirUp = factor(dirUp0, (float)h/(float)w);
    
-    printf("P6 %d %d 255 ", w, h);
+    //printf("P6 %d %d 255 ", w, h);
+
+    byte* pixels = (byte*)malloc(w*h*3);
   
     for (int y = h; y--;)
-        for (int x = w; x--;) {
+        for (int x = w; x--;) {            
             Vec color = vec(0, 0, 0);
             for (int p = samplesCount; --p;) {
                 Vec a = plus(factor(dirLeft, (x - w/2) * randomVal()), factor(dirUp, (y - h/2) * randomVal()));             
@@ -275,8 +270,14 @@ int main() {
             }
 
             color = vec(reinhard(color.x), reinhard(color.y), reinhard(color.z));
+            int index = 3*(w*y + x);
+            pixels[index    ] = (byte)color.x;
+            pixels[index + 1] = (byte)color.y;
+            pixels[index + 2] = (byte)color.z;
             //printf("%c%c%c", (int)color.x, (int)color.y, (int)color.z);
-      }  
+    }  
+    createBMP(pixels, w, h, "card.bmp");
+    free(pixels);
 }
 
 /*

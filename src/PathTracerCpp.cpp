@@ -2,11 +2,13 @@
 #include <stdio.h>
 #include <math.h>
 
+
+typedef unsigned char byte;
+
 struct Vec {
     float x, y, z;
 
     Vec(float v = 0) { x = y = z = v; }
-
     Vec(float a, float b, float c = 0) {
       x = a;
       y = b;
@@ -14,9 +16,7 @@ struct Vec {
     }
 
     Vec operator+(Vec r) { return Vec(x + r.x, y + r.y, z + r.z); }
-
     Vec operator*(Vec r) { return Vec(x * r.x, y * r.y, z * r.z); }
-
     float operator%(Vec r) { return x * r.x + y * r.y + z * r.z; }
 
     // intnv square root
@@ -169,9 +169,77 @@ Vec Trace(Vec origin, Vec direction) {
   return color;
 }
 
+void createBMP(byte data[], int w, int h, char* fName) {
+    FILE *f;
+    int filesize = 54 + 3*w*h;
+
+    byte *img = new byte[3*w*h];
+    //memset(img, 0, 3*w*h);
+
+    for(int i = 0; i < w; ++i) {
+        for(int j = 0; j < h; ++j) {
+            int indSource = (j*w + i)*3;
+            int indTarget = (w*j + w - i - 1)*3;
+
+            img[indTarget    ] = data[indSource + 2];
+            img[indTarget + 1] = data[indSource + 1];
+            img[indTarget + 2] = data[indSource    ];
+        }
+    }
+
+    byte bmpfileheader[14] = { 'B', 'M', 0,0,0,0, 0,0, 0,0, 54, 0, 0,  0};
+    byte bmpinfoheader[40] = { 40,0,0,0, 0,0,0,0, 0,0, 0,0, 1,  0, 24, 0};
+    byte bmppad[3] = {0, 0, 0};
+
+    bmpfileheader[ 2] = (byte)(filesize    );
+    bmpfileheader[ 3] = (byte)(filesize>> 8);
+    bmpfileheader[ 4] = (byte)(filesize>>16);
+    bmpfileheader[ 5] = (byte)(filesize>>24);
+
+    bmpinfoheader[ 4] = (byte)(w    );
+    bmpinfoheader[ 5] = (byte)(w>> 8);
+    bmpinfoheader[ 6] = (byte)(w>>16);
+    bmpinfoheader[ 7] = (byte)(w>>24);
+    bmpinfoheader[ 8] = (byte)(h    );
+    bmpinfoheader[ 9] = (byte)(h>> 8);
+    bmpinfoheader[10] = (byte)(h>>16);
+    bmpinfoheader[11] = (byte)(h>>24);
+
+    f = fopen(fName,"wb");
+    fwrite(bmpfileheader, 1, 14, f);
+    fwrite(bmpinfoheader, 1, 40, f);
+    int lenPad = (4 - (w*3)%4)%4;
+    if (lenPad > 0) {
+        for(int i = 0; i < h; i++) {
+            fwrite(img + w*i*3, 3, w, f);
+            fwrite(bmppad, 1, lenPad, f);
+        }
+    } else {
+        for(int i = 0; i < h; i++) {
+            fwrite(img + (w*i*3), 3, w, f);
+        }
+    }   
+
+    delete[] img;
+    fclose(f);
+}
+
 int main() {
+  // byte testData[] = { 255, 0, 0, 255, 0, 0, 255, 0, 0, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 
+  // 255, 0, 0, 255, 0, 0, 255, 0, 0, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 
+  // 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 
+  // 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 
+  // 255, 0, 0, 255, 0, 0, 255, 0, 0, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 
+  // 255, 0, 0, 255, 0, 0, 255, 0, 0, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 
+  // 255, 0, 0, 255, 0, 0, 255, 0, 0, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 
+  // 255, 0, 0, 255, 0, 0, 255, 0, 0, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 
+  // 255, 0, 0, 255, 0, 0, 255, 0, 0, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127, 127
+  // };
+  // createBMP(testData, 16, 9, "test.bmp");
+  // return 0;
+
 //  int w = 960, h = 540, samplesCount = 16;
-  int w = 96, h = 54, samplesCount = 4;
+  int w = 240, h = 135, samplesCount = 24;
   Vec position(-22, 5, 25);
   Vec goal = !(Vec(-3, 4, 0) + position * -1);
   Vec left = !Vec(goal.z, 0, -goal.x) * (1. / w);
@@ -181,17 +249,26 @@ int main() {
       goal.z * left.x - goal.x * left.z,
       goal.x * left.y - goal.y * left.x);
 
-  printf("P6 %d %d 255 ", w, h);
-  for (int y = h; y--;)
-    for (int x = w; x--;) {
+  //printf("P6 %d %d 255 ", w, h);
+  byte* pixels = new byte[3*w*h];
+  for (int y = h; y > 0; --y) {
+    for (int x = w; x > 0; --x) {
       Vec color;
-      for (int p = samplesCount; p--;)
+      for (int p = samplesCount; p--;) {
         color = color + Trace(position, !(goal + left * (x - w / 2 + randomVal()) + up * (y - h / 2 + randomVal())));
+      }
 
       // Reinhard tone mapping
       color = color * (1. / samplesCount) + 14. / 241;
       Vec o = color + 1;
       color = Vec(color.x / o.x, color.y / o.y, color.z / o.z) * 255;
-      printf("%c%c%c", (int) color.x, (int) color.y, (int) color.z);
+      int index = 3*(w*y - w + x - 1);
+      pixels[index    ] = (byte)color.x;
+      pixels[index + 1] = (byte)color.y;
+      pixels[index + 2] = (byte)color.z;
+      //if (x < w/2 && y < h/2) printf("%d %d \n", x, y);
+      //printf("%c%c%c", (int) color.x, (int) color.y, (int) color.z);
     }
-}// Andrew Kensler
+  }
+  createBMP(pixels, w, h, "cardCPP.bmp");
+}
